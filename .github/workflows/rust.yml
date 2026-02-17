@@ -1,0 +1,57 @@
+name: Rust
+
+on:
+  push:
+    branches: [ "master" ]
+    tags: [ "v*" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Build (release)
+        run: cargo build --release --verbose
+
+      - name: Run tests
+        run: cargo test --release --verbose
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: slient
+          path: target/release/slient
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download release artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: slient
+          path: ./slient
+
+      - name: Publish built binary to GitHub releases
+        run: |
+          gh release create ${{ github.ref_name }} --generate-notes ./slient/slient

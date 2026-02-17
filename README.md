@@ -232,105 +232,52 @@ For audio files, Slient Layer uses **Spread Spectrum** techniques:
 
 Slient Layer can be used from other programming languages through its C-compatible FFI.
 
-### C Example
-
-```c
-#include <stdio.h>
-#include <stdlib.h>
-
-// Function declarations
-extern int slient_embed_image(
-    const char* input_path,
-    const char* output_path,
-    const unsigned char* data,
-    size_t data_len,
-    const char* password
-);
-
-extern int slient_extract_image(
-    const char* input_path,
-    const char* password,
-    unsigned char** out_data,
-    size_t* out_len
-);
-
-extern void slient_free_data(unsigned char* ptr);
-
-int main() {
-    const char* secret = "Hello from C!";
-    
-    // Embed
-    int result = slient_embed_image(
-        "input.png",
-        "output.png",
-        (unsigned char*)secret,
-        strlen(secret),
-        "password"
-    );
-    
-    if (result != 0) {
-        fprintf(stderr, "Embed failed\n");
-        return 1;
-    }
-    
-    // Extract
-    unsigned char* data = NULL;
-    size_t len = 0;
-    
-    result = slient_extract_image("output.png", "password", &data, &len);
-    
-    if (result == 0) {
-        printf("Extracted: %.*s\n", (int)len, data);
-        slient_free_data(data);
-    }
-    
-    return 0;
-}
-```
-
 ### Python Example (using ctypes)
-
 ```python
 from ctypes import *
 
 # Load library
-lib = CDLL("./target/release/libslient_layer.so")
+lib = CDLL("./target/release/slient_layer.dll")
 
 # Define function signatures
-lib.slient_embed_image.argtypes = [c_char_p, c_char_p, POINTER(c_ubyte), c_size_t, c_char_p]
+lib.slient_embed_image.argtypes = [
+    c_char_p,
+    c_char_p,
+    POINTER(c_ubyte),
+    c_size_t,
+    c_char_p,
+]
 lib.slient_embed_image.restype = c_int
 
-lib.slient_extract_image.argtypes = [c_char_p, c_char_p, POINTER(POINTER(c_ubyte)), POINTER(c_size_t)]
+lib.slient_extract_image.argtypes = [
+    c_char_p,
+    c_char_p,
+    POINTER(POINTER(c_ubyte)),
+    POINTER(c_size_t),
+]
 lib.slient_extract_image.restype = c_int
 
 lib.slient_free_data.argtypes = [POINTER(c_ubyte)]
 
 # Embed
 secret = b"Hello from Python!"
+secret_buf = (c_ubyte * len(secret)).from_buffer_copy(secret)
 result = lib.slient_embed_image(
-    b"input.png",
-    b"output.png",
-    secret,
-    len(secret),
-    b"password"
+    b"input.jpg", b"output.jpg", secret_buf, len(secret), b"password"
 )
 
 if result == 0:
     print("✓ Embedded successfully")
 
-# Extract
 data_ptr = POINTER(c_ubyte)()
 data_len = c_size_t()
 
 result = lib.slient_extract_image(
-    b"output.png",
-    b"password",
-    byref(data_ptr),
-    byref(data_len)
+    b"output.jpg", b"password", byref(data_ptr), byref(data_len)
 )
 
 if result == 0:
-    extracted = bytes(data_ptr[:data_len.value])
+    extracted = bytes(data_ptr[: data_len.value])
     print(f"Extracted: {extracted.decode('utf-8')}")
     lib.slient_free_data(data_ptr)
 ```

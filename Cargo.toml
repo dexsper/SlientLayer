@@ -1,0 +1,69 @@
+[package]
+name = "slient_layer"
+version = "0.1.0"
+edition = "2024"
+authors = ["Sergei Ivanov <dexsperpro@gmail.com>"]
+description = "Compression-resistant steganography library for images and audio"
+license = "Apache-2.0"
+repository = "https://github.com/dexsper/SlientLayer.git"
+documentation = "https://docs.rs/slient_layer"
+readme = "README.md"
+keywords = ["steganography", "image", "audio"]
+categories = ["multimedia", "command-line-utilities", "cryptography"]
+
+[lib]
+name = "slient_layer"
+path = "src/lib.rs"
+crate-type = ["rlib", "cdylib", "staticlib"]
+
+[[bin]]
+name = "slient"
+path = "src/main.rs"
+
+[dependencies]
+# Image processing
+image = "0.25"
+
+# Audio processing  
+hound = "3.5"
+
+# DCT for compression-resistant steganography
+rustdct = "0.7"
+rustfft = "6.2"
+
+# CLI
+clap = { version = "4.5", features = ["derive"] }
+
+# Error handling
+thiserror = "2.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+
+## Cryptography (optional encryption of payload)
+aes-gcm = "0.10"
+rand = "0.10"
+sha2 = "0.10"
+
+# Utilities
+byteorder = "1.5"
+
+# FFI
+libc = "0.2"
+
+[dev-dependencies]
+criterion = { version = "0.8", features = ["html_reports"] }
+tempfile = "3.10"
+approx = "0.5"
+
+[[bench]]
+name = "steganography"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+
+[profile.bench]
+inherits = "release"

@@ -1,0 +1,28 @@
+# Rust
+/target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Examples assets (generated at runtime)
+examples/assets/*.png
+examples/assets/*.wav
+examples/assets/*.jpg
+
+# Test artifacts
+*.profraw
+*.profdata
+
+# Benchmarks
+/benches/target/
